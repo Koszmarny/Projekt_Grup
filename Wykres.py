@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 from datetime import date
 import locale
 import Cython
@@ -8,11 +8,11 @@ import os
 app = Flask(__name__)
 locale.setlocale(locale.LC_TIME, 'pl_PL.UTF-8')
 
-
 """
     Funkcja zwraca tuplę tupli zawierających dane pobrane z pliku csv
     do zapisania w tabeli.
     """
+
 
 # def pobierz_dane(pliczek):
 #
@@ -33,6 +33,12 @@ locale.setlocale(locale.LC_TIME, 'pl_PL.UTF-8')
 
 @app.route('/', methods=['GET, POST'])
 def home():
+
+    plik = open('dane.txt')
+    try:
+        dane = plik.read()
+    finally:
+        plik.close()
     data = "Dzisiaj jest: " + date.today().strftime("%A %d %B %Y")
     plt.plot([])
     plt.ylabel('Poziom promieniowania')
