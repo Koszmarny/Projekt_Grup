@@ -1,52 +1,42 @@
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, make_response
 from datetime import date
 import locale
 import Cython
+import base64, random
+from io import BytesIO
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy
 import os
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+
 
 app = Flask(__name__)
 locale.setlocale(locale.LC_TIME, 'pl_PL.UTF-8')
 
-"""
-    Funkcja zwraca tuplę tupli zawierających dane pobrane z pliku csv
-    do zapisania w tabeli.
-    """
 
-
-# def pobierz_dane(pliczek):
-#
-#     dane = []  # deklarujemy pustą listę
-#     if os.path.isfile(pliczek):  # sprawdzamy czy plik istnieje na dysku
-#         with open(pliczek, "dane.txt") as zawartosc:  # otwieramy plik do odczytu
-#             for linia in zawartosc:
-#                 linia = linia.replace("\n", "")  # usuwamy znaki końca linii
-#                 linia = linia.replace("\r", "")  # usuwamy znaki końca linii
-#                 linia = linia.decode("utf-8")  # odczytujemy znaki jako utf-8
-#                 # dodajemy elementy do tupli a tuplę do listy
-#                 dane.append(tuple(linia.split(",")))
-#     else:
-#         print "Plik z danymi", pliczek, "nie istnieje!"
-#
-#     return tuple(dane)
-
-
-@app.route('/', methods=['GET, POST'])
+@app.route('/')
 def home():
+    return render_template('PROJEKT X.html')
 
-    plik = open('dane.txt')
-    try:
-        dane = plik.read()
-    finally:
-        plik.close()
-    data = "Dzisiaj jest: " + date.today().strftime("%A %d %B %Y")
-    plt.plot([])
-    plt.ylabel('Poziom promieniowania')
-    plt.xlabel('Czas')
+@app.route('/plot.png')
+def generuj():
+    fig = plt.figure(figsize=(6,4), dpi=300)
+    axis = fig.add_subplot(1, 1, 1)
 
-    return render_template('Logowanie.html', dzisiaj=data, powitanie="Witaj " + session.get("login", "nieznajomy"))
+    xs = numpy.arange(166)
+    ys = numpy.loadtxt("dane.txt")
+    axis.plot(xs, ys,color='purple')
+    canvas = FigureCanvas(fig)
+    output = BytesIO()
+    canvas.print_png(output)
+    response = make_response(output.getvalue())
+    response.mimetype = 'image/png'
+    return response
 
 
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)
-app.run(debug=True, host='0.0.0.0', port=10111)
+app.run(debug=True, host='0.0.0.0', port=10114)
